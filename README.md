@@ -1,6 +1,7 @@
 # Device Management API
 
 This is a **Django REST Framework (DRF) project** for managing users and devices with **JWT authentication**, **role-based access control**, and **API documentation using DRF Spectacular**.
+Additionally, this project integrates **bKash payment gateway** for testing payment flows.
 
 ---
 
@@ -8,13 +9,13 @@ This is a **Django REST Framework (DRF) project** for managing users and devices
 
 1. **Authentication**
 
-   * **JWT-based login, register, change password, and logout** for secure authentication.
-   * Token is required to access protected endpoints.
+   * JWT-based login, registration, change password, and logout for secure authentication.
+   * Tokens are required to access protected endpoints.
 
 2. **User Roles**
 
-   * **Admin**, **Staff**, **User**.
-   * **Role-based access control**:
+   * **Admin**, **Staff**, **User**
+   * Role-based access control:
 
      * Users can only view their own devices.
      * Admins and Staff can add, edit, delete, and view all devices.
@@ -27,10 +28,20 @@ This is a **Django REST Framework (DRF) project** for managing users and devices
 
    * Add, edit, list, and delete devices based on user role.
 
-5. **API Documentation**
+5. **Payment Gateway**
 
-   * Fully documented with **DRF Spectacular**.
-   * Swagger UI available at: `/api/schema/swagger-ui/`
+   * Integration with **bKash tokenized checkout** for creating and executing payments.
+   * **Demo credentials for testing**:
+
+     * bKash PIN: `12121`
+     * OTP: `123456`
+   * Callback URLs handle payment success, failure, and cancellation.
+   * Payments update the database automatically when completed.
+
+6. **API Documentation**
+
+   * Fully documented using **DRF Spectacular**
+   * Swagger UI available at `/api/schema/swagger-ui/`
 
 ---
 
@@ -75,9 +86,11 @@ pip install -r requirements.txt
 
 Create a `.env` file in the project root:
 
-```
+```env
 SECRET_KEY=your_django_secret_key
 DEBUG=True
+
+# Database
 DB_NAME=your_db_name
 DB_USER=your_db_user
 DB_PASSWORD=your_db_password
@@ -87,9 +100,18 @@ DB_PORT=5432
 # JWT Settings
 SIMPLE_JWT_ACCESS_TOKEN_LIFETIME=1d
 SIMPLE_JWT_REFRESH_TOKEN_LIFETIME=7d
+
+# bKash Sandbox Settings (Demo)
+BKASH_USERNAME=sandboxTokenizedUser02
+BKASH_PASSWORD=sandboxTokenizedUser02@12345
+BKASH_APP_KEY=your_app_key
+BKASH_APP_SECRET=your_app_secret
+BKASH_CALLBACK_URL=http://127.0.0.1:8000/api/bkash/callback/
 ```
 
 > **Note:** Never push `.env` to GitHub.
+
+---
 
 ### 5. Database Setup
 
@@ -110,23 +132,26 @@ python manage.py createsuperuser
 python manage.py runserver
 ```
 
-Open API at: `http://127.0.0.1:8000/`
-Swagger UI docs: `http://127.0.0.1:8000/api/schema/swagger-ui/`
+---
 
-
-## Notes
+## API Usage Notes
 
 * Use **JWT Token** in headers for protected endpoints:
 
-  ```
-  Authorization: Bearer <your_jwt_token_here>
-  ```
+```http
+Authorization: Bearer <your_jwt_token_here>
+```
+
 * Role-based access ensures secure operations based on user type.
-* API docs are automatically generated with DRF Spectacular.
+* **bKash Payment Flow**:
+
+  1. Generate a **grant token**.
+  2. Create a **payment request** with amount, currency, and invoice number.
+  3. Execute payment after the user completes it.
+  4. Payment callback updates the database and redirects the user to a success or failure page.
 
 ---
 
 ## License
 
 This project is **open-source** and free to use.
-
